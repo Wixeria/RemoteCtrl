@@ -19,6 +19,12 @@ This one’s for anyone who ever felt like they had nothing but time, pain, and 
 1. Install dependencies with `npm install`
 2. Fill in .env file.
 3. Start the bot with `node .`
+4. (Optional) You can start the bot whenever your machine turn on by just following these steps:
+   - Create shortcut of start.bat
+   - Copy shortcut.
+   - Press Win + R
+   - Type: `shell:startup`
+   - Paste it into Startup folder."
 
 # Note
 This wasn’t made for attention.
