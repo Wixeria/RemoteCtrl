@@ -5,7 +5,7 @@ A web-based + Discord command bot for remote PC access.
 Minimal, personal, and dead simple — just like the feeling I was chasing when I made it.
 
 Use it, fork it, build on it.
-This one’s for anyone who ever felt like they had nothing but time, pain, and an idea. 
+This one’s for anyone who ever felt like they had nothing but time and an idea. 
 
 # Features
 - Remote system control via Discord     messages or web UI
@@ -44,6 +44,3 @@ Yes, you can reverse engineer it if you want.
 Study it, break it, rebuild it — doesn’t matter.
 But whatever you do with it,
 I won’t take responsibility for the outcome.
-
-This was mine for a moment.
-Now it’s yours, if you want it.
