@@ -20,6 +20,7 @@ This one’s for anyone who ever felt like they had nothing but time, pain, and 
 1. Install dependencies with `npm install`
 2. Create a .env file in the root with the following:
    ```env
+   TOKEN = your_bot_token
    OWNER_ID = your_discord_id
    WEB_SECRET = your_web_secret
    ```
