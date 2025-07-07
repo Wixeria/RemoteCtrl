@@ -1,1 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bot Control Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;600;700&display=swap">
+  <style>
+    :root {
+      --accent: #007aff;
+      --accent-gradient: linear-gradient(90deg, #007aff 0%, #5e5ce6 100%);
+      --bg: #f5f6fa;
+      --panel-bg: #fff;
+      --panel-radius: 28px;
+      --panel-shadow: 0 8px 32px 0 rgba(60,60,67,0.12), 0 1.5px 6px 0 #007aff22;
+      --panel-blur: 24px;
+      --transition-main: cubic-bezier(.5,1.6,.3,1);
+      --text-main: #1c1c1e;
+      --text-subtle: #636366;
+      --danger: #ff453a;
+      --warning: #ffd60a;
+      --success: #32d74b;
+      --sidebar-bg: #f2f2f7cc;
+      --sidebar-border: #e5e5ea;
+      --sidebar-shadow: 4px 0 32px #0001;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'SF Pro Display', 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      scroll-behavior: smooth;
+      color: var(--text-main);
+      transition: background 0.7s var(--transition-main), color 0.7s var(--transition-main);
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .panel {
+      background: var(--panel-bg);
+      border-radius: var(--panel-radius);
+      box-shadow: var(--panel-shadow);
+      backdrop-filter: blur(var(--panel-blur)) saturate(180%);
+      -webkit-backdrop-filter: blur(var(--panel-blur)) saturate(180%);
+      padding: 2.5rem 3.5rem 2.2rem 3.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 340px;
+      max-width: 600px;
+      width: 100%;
+      opacity: 0;
+      transform: translateY(60px) scale(0.98);
+      transition:
+        opacity 1.1s var(--transition-main),
+        transform 1.1s var(--transition-main),
+        box-shadow 0.8s var(--transition-main),
+        background 0.7s var(--transition-main);
+      will-change: opacity, transform, box-shadow, background;
+    }
+    .panel.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      box-shadow: 0 16px 48px 0 rgba(60,60,67,0.18), 0 4px 16px 0 #007aff22;
+    }
+    @media (max-width: 600px) {
+      .panel {
+        min-width: unset;
+        max-width: 99vw;
+        padding-left: 0.7rem;
+        padding-right: 0.7rem;
+      }
+    }
+    h1 {
+      margin-bottom: 1.2rem;
+      font-size: 2.3rem;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: 1.5px;
+      background: var(--accent-gradient);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 16px #007aff22;
+      font-family: 'SF Pro Display', 'Segoe UI', Arial, sans-serif;
+      transition: text-shadow 0.5s var(--transition-main), color 0.7s var(--transition-main);
+    }
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.7rem;
+      width: 100%;
+      justify-content: center;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 1rem 1.5rem;
+      border: none;
+      border-radius: 16px 16px 0 0;
+      background: #f2f2f7;
+      color: var(--text-subtle);
+      font-size: 1.13rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition:
+        background 0.32s var(--transition-main),
+        color 0.32s var(--transition-main),
+        box-shadow 0.32s var(--transition-main),
+        transform 0.32s var(--transition-main);
+      outline: none;
+      box-shadow: 0 2px 8px #0001;
+      letter-spacing: 1.1px;
+      will-change: background, color, box-shadow, transform;
+    }
+    .tab-btn.active {
+      background: var(--accent-gradient);
+      color: #fff;
+      box-shadow: 0 6px 24px #007aff22;
+      transform: scale(1.05) translateY(-2px);
+    }
+    .tab-content {
+      width: 100%;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 0.7s var(--transition-main);
+      opacity: 0;
+      transform: translateY(18px) scale(0.98);
+      transition:
+        opacity 0.7s var(--transition-main),
+        transform 0.7s var(--transition-main);
+      will-change: opacity, transform;
+    }
+    .tab-content.active {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      animation: fadeIn 0.7s var(--transition-main);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(18px) scale(0.98);}
+      to { opacity: 1; transform: translateY(0) scale(1);}
+    }
+    .btn-group {
+      display: flex;
+      gap: 1.3rem;
+      margin-bottom: 1.3rem;
+    }
+    button.action, .any-cmd button {
+      padding: 1rem 2.5rem;
+      border: none;
+      border-radius: 16px;
+      font-size: 1.13rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: #111;
+      color: #fff;
+      box-shadow: 0 2px 12px #0002;
+      transition:
+        background 0.22s var(--transition-main),
+        transform 0.22s var(--transition-main),
+        box-shadow 0.22s var(--transition-main),
+        filter 0.22s var(--transition-main);
+      outline: none;
+      letter-spacing: 1px;
+      will-change: background, transform, box-shadow, filter;
+    }
+    button.action:hover, .any-cmd button:hover {
+      transform: translateY(-3px) scale(1.07);
+      box-shadow: 0 8px 32px #0004;
+      filter: brightness(1.08);
+    }
+    input[type="password"], input[type="text"] {
+      margin-bottom: 1.1rem;
+      padding: 0.8rem 1.2rem;
+      border-radius: 10px;
+      border: 1.5px solid #e5e5ea;
+      font-size: 1.09rem;
+      width: 230px;
+      text-align: center;
+      background: #f2f2f7;
+      color: var(--text-main);
+      outline: none;
+      box-shadow: 0 1px 4px #0001;
+      transition:
+        box-shadow 0.22s var(--transition-main),
+        background 0.22s var(--transition-main),
+        border-color 0.22s var(--transition-main),
+        color 0.22s var(--transition-main);
+      font-family: 'SF Pro Display', 'Segoe UI', Arial, sans-serif;
+      letter-spacing: 0.5px;
+      will-change: box-shadow, background, border-color, color;
+    }
+    input[type="password"]:focus, input[type="text"]:focus {
+      box-shadow: 0 2px 12px #007aff44;
+      background: #fff;
+      border-color: var(--accent);
+    }
+    button:focus, input:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px #007aff33, 0 2px 8px #007aff44;
+    }
+    .any-cmd {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 1.1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      transition: gap 0.3s var(--transition-main);
+    }
+    .any-cmd input[type="text"] {
+      width: 130px;
+      margin-bottom: 0;
+    }
+    #result {
+      margin-top: 1.3rem;
+      font-size: 1.09rem;
+      min-height: 1.5em;
+      text-align: center;
+      color: var(--text-main);
+      word-break: break-word;
+      text-shadow: 0 1px 8px #007aff11;
+      transition: color 0.3s var(--transition-main);
+    }
+    #loader {
+      position: fixed;
+      z-index: 9999;
+      inset: 0;
+      background: linear-gradient(135deg, #f5f6fa 0%, #e5e5ea 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.8s var(--transition-main), background 0.7s var(--transition-main);
+      will-change: opacity, background;
+    }
+    .loader-spinner {
+      border: 6px solid #e5e5ea;
+      border-top: 6px solid var(--accent);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1.1s cubic-bezier(.5,1.6,.3,1) infinite;
+      margin-bottom: 1.3rem;
+      box-shadow: 0 2px 16px #007aff22;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+    .loader-title {
+      color: var(--text-main);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-shadow: 0 2px 8px #007aff11;
+      opacity: 0.95;
+      transition: opacity 0.5s var(--transition-main), color 0.7s var(--transition-main);
+      font-family: 'SF Pro Display', 'Segoe UI', Arial, sans-serif;
+    }
+    .allowed-commands {
+      background: #f2f2f7;
+      border-left: 4px solid var(--accent);
+      border-radius: 0 18px 18px 0;
+      margin-top: 1.3rem;
+      padding: 1.2rem 1.8rem;
+      min-width: 220px;
+      max-width: 340px;
+      opacity: 0;
+      transform: translateX(60px) scale(0.98);
+      filter: blur(2px);
+      box-shadow: 0 2px 16px #007aff11;
+      transition:
+        opacity 0.7s var(--transition-main),
+        transform 0.7s var(--transition-main),
+        filter 0.7s var(--transition-main),
+        background 0.7s var(--transition-main),
+        color 0.7s var(--transition-main);
+      pointer-events: none;
+      will-change: opacity, transform, filter, background, color;
+    }
+    .tab-content.active .allowed-commands.smooth-show {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      filter: blur(0);
+      pointer-events: auto;
+    }
+    .allowed-title {
+      font-size: 1.09rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+      letter-spacing: 1px;
+      transition: color 0.7s var(--transition-main);
+    }
+    .allowed-commands ul {
+      margin: 0;
+      padding-left: 1.2em;
+      color: var(--text-main);
+      font-size: 0.99rem;
+      transition: color 0.7s var(--transition-main);
+    }
+    .allowed-commands li {
+      margin-bottom: 0.2em;
+      color: var(--text-main);
+      letter-spacing: 0.5px;
+      transition: color 0.3s var(--transition-main);
+    }
+    @media (max-width: 500px) {
+      .panel { padding: 1.2rem 0.5rem; }
+      .tab-btn, button.action, .any-cmd button {
+        font-size: 1.1rem;
+        padding: 0.8rem 1.1rem;
+      }
+    }
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      width: 270px;
+      background: var(--sidebar-bg);
+      box-shadow: var(--sidebar-shadow);
+      backdrop-filter: blur(18px) saturate(180%);
+      -webkit-backdrop-filter: blur(18px) saturate(180%);
+      border-right: 2px solid var(--sidebar-border);
+      z-index: 12000;
+      transform: translateX(-110%);
+      transition: transform 0.55s var(--transition-main), background 0.7s var(--transition-main);
+      display: flex;
+      flex-direction: column;
+      padding: 2.2rem 1.2rem 1.2rem 1.2rem;
+      will-change: transform, background;
+    }
+    #sidebar.open {
+      transform: translateX(0);
+    }
+    #sidebar-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(60,60,67,0.10);
+      z-index: 11999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s var(--transition-main);
+      will-change: opacity;
+    }
+    #sidebar.open ~ #sidebar-backdrop {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 2.3rem;
+      margin-top: 5.0rem;
+    }
+    .sidebar-avatar {
+      font-size: 2.3rem;
+      background: var(--accent-gradient);
+      border-radius: 50%;
+      padding: 0.32em 0.45em;
+      box-shadow: 0 2px 8px #007aff11;
+      transition: box-shadow 0.3s var(--transition-main);
+    }
+    .sidebar-title {
+      font-size: 1.28rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: 1.6px;
+      font-family: 'SF Pro Display', 'Segoe UI', Arial, sans-serif;
+      transition: color 0.7s var(--transition-main);
+    }
+    .sidebar-links {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      flex: 1;
+    }
+    .sidebar-links li {
+      color: var(--text-main);
+      font-size: 1.09rem;
+      font-weight: 600;
+      padding: 0.75em 0.9em;
+      border-radius: 10px;
+      margin-bottom: 0.35em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.8em;
+      transition:
+        background 0.22s var(--transition-main),
+        color 0.22s var(--transition-main),
+        transform 0.22s var(--transition-main);
+      user-select: none;
+      will-change: background, color, transform;
+    }
+    .sidebar-links li:hover {
+      background: var(--accent);
+      color: #fff;
+      transform: translateX(6px) scale(1.06);
+    }
+    .sidebar-footer {
+      margin-top: 2.7rem;
+      color: var(--accent);
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8em;
+      transition: color 0.7s var(--transition-main);
+    }
+    .sidebar-status {
+      display: inline-block;
+      width: 0.95em;
+      height: 0.95em;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px #32d74b44;
+      transition: background 0.3s var(--transition-main), box-shadow 0.3s var(--transition-main);
+    }
+    .sidebar-status.online { background: var(--success); }
+    .sidebar-status.offline { background: var(--danger); box-shadow: 0 0 8px #ff453a44; }
+    #sidebar-toggle {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      z-index: 12001;
+      background: #fff;
+      border: none;
+      border-radius: 12px;
+      color: var(--accent);
+      font-size: 2.2rem;
+      font-weight: 700;
+      padding: 0.22em 0.55em;
+      cursor: pointer;
+      box-shadow: 0 2px 12px #0001;
+      transition:
+        background 0.22s var(--transition-main),
+        color 0.22s var(--transition-main),
+        box-shadow 0.22s var(--transition-main),
+        transform 0.22s var(--transition-main);
+      outline: none;
+      will-change: background, color, box-shadow, transform;
+    }
+    #sidebar-toggle:hover {
+      background: var(--accent);
+      color: #fff;
+      transform: scale(1.08);
+    }
+    .darkmode-toggle { display: none !important; }
+  </style>
+</head>
+<body>
+  <button id="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>
+  <div id="loader">
+    <div class="loader-spinner"></div>
+    <div class="loader-title">Bot Control Panel</div>
+  </div>
+  <div class="panel">
+    <h1>Bot Control Panel</h1>
+    <input type="password" id="secret" placeholder="Enter Web Secret" autocomplete="off" />
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab(0)">Home</button>
+      <button class="tab-btn" onclick="showTab(1)">Quick Actions</button>
+      <button class="tab-btn" onclick="showTab(2)">Custom Command</button>
+    </div>
+    <div class="tab-content active" id="tab-0">
+      <div id="sys-monitor" style="width:100%;margin-bottom:1.5rem;display:flex;flex-direction:column;align-items:center;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:0.7em;font-size:1.1rem;">System Monitoring</div>
+        <div id="monitoring-stats" style="background:#f2f2f7;border-radius:12px;padding:1em 1.5em;box-shadow:0 2px 12px #007aff11;min-width:220px;max-width:340px;">
+          <div><b>CPU:</b> <span id="cpu-usage">-</span></div>
+          <div><b>RAM:</b> <span id="ram-usage">-</span></div>
+          <div><b>Disk:</b> <span id="disk-usage">-</span></div>
+        </div>
+        <div id="monitoring-error" style="color:var(--danger);font-size:0.95em;margin-top:0.5em;"></div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-1">
+      <div class="btn-group">
+        <button class="action shutdown" onclick="sendCommand('shutdown')">🛑 Shutdown</button>
+        <button class="action restart" onclick="sendCommand('restart')">🔄 Restart</button>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-2">
+      <div class="any-cmd">
+        <input type="text" id="cmdName" placeholder="Command">
+        <input type="text" id="cmdArgs" placeholder="Args">
+        <button onclick="sendAnyCommand()">Send</button>
+      </div>
+      <div id="allowed-commands-list" class="allowed-commands">
+        <div class="allowed-title">Available custom argument commands:</div>
+        <ul id="allowed-commands-ul"></ul>
+      </div>
+    </div>
+    <div id="result"></div>
+  </div>
+  <div id="sidebar-backdrop"></div>
+  <nav id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-avatar">🤖</span>
+      <span class="sidebar-title">Bot Panel</span>
+    </div>
+    <ul class="sidebar-links">
+      <li onclick="sidebarNav(0)"><span>🏠</span> Home</li>
+      <li onclick="sidebarNav(1)"><span>⚡</span> Quick Actions</li>
+      <li onclick="sidebarNav(2)"><span>⌨️</span> Custom Command</li>
+      <li onclick="openAbout()"><span>ℹ️</span> About</li>
+    </ul>
+    <div class="sidebar-footer">
+      <span class="sidebar-status online"></span> Online
+    </div>
+  </nav>
+  <script>
+let monitorInterval = null;
 
+function animateTabSwitch(idx) {
+  document.querySelectorAll('.tab-content').forEach((tab, i) => {
+    if (i === idx) {
+      tab.style.display = 'flex';
+      setTimeout(() => tab.classList.add('active'), 10);
+    } else {
+      tab.classList.remove('active');
+      setTimeout(() => { tab.style.display = 'none'; }, 400);
+    }
+  });
+}
+
+function showTab(idx) {
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i === idx);
+  });
+  animateTabSwitch(idx);
+  document.getElementById('result').textContent = '';
+  const allowed = document.getElementById('allowed-commands-list');
+  if (idx === 2) {
+    setTimeout(() => allowed.classList.add('smooth-show'), 350);
+    stopMonitoring();
+  } else {
+    allowed.classList.remove('smooth-show');
+    if (idx === 0) startMonitoring();
+    else stopMonitoring();
+  }
+}
+
+async function sendCommand(cmd) {
+  const secret = document.getElementById('secret').value;
+  if (!secret) {
+    document.getElementById('result').textContent = 'Please enter the web secret.';
+    return;
+  }
+  document.getElementById('result').textContent = 'Processing...';
+  try {
+    const res = await fetch('/' + cmd, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + secret }
+    });
+    const text = await res.text();
+    document.getElementById('result').textContent = text;
+  } catch (e) {
+    document.getElementById('result').textContent = 'Error: ' + e.message;
+  }
+}
+
+async function sendAnyCommand() {
+  const secret = document.getElementById('secret').value;
+  const name = document.getElementById('cmdName').value.trim();
+  const args = document.getElementById('cmdArgs').value.trim().split(/\s+/).filter(Boolean);
+  if (!secret) {
+    document.getElementById('result').textContent = 'Please enter the web secret.';
+    return;
+  }
+  if (!name) {
+    document.getElementById('result').textContent = 'Please enter a command name.';
+    return;
+  }
+  document.getElementById('result').textContent = 'Processing...';
+  try {
+    const res = await fetch('/command', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + secret,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name, args })
+    });
+    const text = await res.text();
+    document.getElementById('result').textContent = text;
+  } catch (e) {
+    document.getElementById('result').textContent = 'Error: ' + e.message;
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const loader = document.getElementById('loader');
+    const panel = document.querySelector('.panel');
+    if (loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => {
+        loader.style.display = 'none';
+        panel.classList.add('visible');
+      }, 1200);
+    }
+  }, 1200);
+  // Populate allowed commands
+  const allowedArgCommands = ['open', 'kill'];
+  const ul = document.getElementById('allowed-commands-ul');
+  allowedArgCommands.forEach(cmd => {
+    const li = document.createElement('li');
+    li.textContent = cmd;
+    ul.appendChild(li);
+  });
+  startMonitoring();
+});
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  sidebar.classList.toggle('open');
+  if (sidebar.classList.contains('open')) {
+    backdrop.style.opacity = '1';
+    backdrop.style.pointerEvents = 'auto';
+  } else {
+    backdrop.style.opacity = '0';
+    backdrop.style.pointerEvents = 'none';
+  }
+}
+document.getElementById('sidebar-backdrop').onclick = () => {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-backdrop').style.opacity = '0';
+  document.getElementById('sidebar-backdrop').style.pointerEvents = 'none';
+};
+function sidebarNav(idx) {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-backdrop').style.opacity = '0';
+  document.getElementById('sidebar-backdrop').style.pointerEvents = 'none';
+  showTab(idx);
+}
+function openAbout() {
+  window.location.href = "https://github.com/Wixeria";
+}
+
+async function fetchMonitoringStats() {
+  try {
+    const res = await fetch('/api/stats');
+    if (!res.ok) throw new Error('Failed to fetch stats');
+    const stats = await res.json();
+    document.getElementById('cpu-usage').textContent = stats.cpu.usage + '%';
+    document.getElementById('ram-usage').textContent = stats.ram.used + ' / ' + stats.ram.total + ' GB';
+    document.getElementById('disk-usage').textContent = stats.disk.used + ' / ' + stats.disk.total + ' GB';
+    document.getElementById('monitoring-error').textContent = '';
+  } catch (e) {
+    document.getElementById('monitoring-error').textContent = 'Monitoring unavailable';
+    document.getElementById('cpu-usage').textContent = '-';
+    document.getElementById('ram-usage').textContent = '-';
+    document.getElementById('disk-usage').textContent = '-';
+  }
+}
+function startMonitoring() {
+  fetchMonitoringStats();
+  if (monitorInterval) clearInterval(monitorInterval);
+  monitorInterval = setInterval(fetchMonitoringStats, 5000);
+}
+function stopMonitoring() {
+  if (monitorInterval) clearInterval(monitorInterval);
+}
+  </script>
+</body>
+</html>
