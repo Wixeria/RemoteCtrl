@@ -33,14 +33,8 @@ This one’s for anyone who ever felt like they had nothing but time and an idea
    - Type: `shell:startup`
    - Paste it into Startup folder."
 
-# Note
-This wasn’t made for attention.
-It was made because I needed something to hold onto.
-It’s not perfect. But it works.
-Keep it safe. Keep it local. You know what this is.
 
 # Last thing
 Yes, you can reverse engineer it if you want.
-Study it, break it, rebuild it — doesn’t matter.
 But whatever you do with it,
 I won’t take responsibility for the outcome.
