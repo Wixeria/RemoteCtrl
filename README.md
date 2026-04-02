@@ -1,11 +1,5 @@
 # RemoteCtrl
-“I built this to feel in control again.”
-
 A web-based + Discord command bot for remote PC access.
-Minimal, personal, and dead simple — just like the feeling I was chasing when I made it.
-
-Use it, fork it, build on it.
-This one’s for anyone who ever felt like they had nothing but time and an idea. 
 
 # Features
 - Remote system control via Discord     messages or web UI
